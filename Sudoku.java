@@ -3,15 +3,17 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.sound.sampled.Clip;
 import javax.swing.*;
-import java.awt.*;
-import java.io.*;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+//import java.io.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyListener;
-import java.util.Scanner;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Random;
 class sudoko extends JFrame {
     static int mistakes=0;
@@ -103,7 +105,8 @@ int[][] b5 = {
         answers.add(b4);
         answers.add(b5);
         r=new Random();
-        int aind=Math.abs(r.nextInt()%7);
+        int aind=Math.abs(r.nextInt()%6);
+        //System.out.println(answers.size());
         a=new int[9][9];
         a=answers.get(aind);
         ans=new int[9][9];
@@ -114,7 +117,7 @@ int[][] b5 = {
         }
         for(int i=0;i<9;i++){
             int count=0;
-            while(count<4){
+            while(count<5){
                 int x=Math.abs(r.nextInt()%9);
                 if(a[i][x]!=0){
                 a[i][x]=0;
@@ -122,12 +125,24 @@ int[][] b5 = {
                 }
             }
         }
-        this.setSize(500,500);
-        this.setLayout(new GridLayout(9,9));
+        this.setBackground(Color.black);
+        this.setLayout(null);
         font = new Font("Arial",Font.BOLD,25);
         but=new JButton[9][9];
+        int w=55,h=55;
+        int x=0,y=0;
+        int xv=0,yv=0;
         for(int i=0;i<9;i++){
+            int bx=x;
+            int by=y+i*h;
+            if(i%3==0){
+                by+=3;
+            }
             for(int j=0;j<9;j++){
+                if(j%3==0){
+                    //l.add(new ArrayList<>(Arrays.asList(i,j)));
+                    bx+=3;
+                }
                 but[i][j]=new JButton(a[i][j]==0?vis:String.valueOf(a[i][j]));
                 but[i][j].addActionListener(this);
                 but[i][j].addKeyListener(this);
@@ -135,14 +150,16 @@ int[][] b5 = {
                 but[i][j].setFont(font);
                 but[i][j].setForeground(Color.black);
                 but[i][j].setBackground(Color.white);
-                but[i][j].setBorder(BorderFactory.createLineBorder(Color.BLACK,1)); 
+                but[i][j].setBounds(bx,by,w,h); 
                 this.add(but[i][j]);
+                bx+=w+1;
             }
         }
     }
     public void actionPerformed(ActionEvent e) {
         for(int i=0;i<9;i++){
             for(int j=0;j<9;j++){
+                if(but[i][j].getBackground()!=Color.red)
                 but[i][j].setBackground(Color.white);
             }
         }
@@ -150,23 +167,37 @@ int[][] b5 = {
         for(int i=0;i<9;i++){
             for(int j=0;j<9;j++){
                 if(e.getSource()==but[i][j]){
-                    but[i][j].setBackground(new Color(89,89,89));
+                    if(but[i][j].getBackground()!=Color.red) but[i][j].setBackground(new Color(89,89,89));
                     for(int k=0;k<9;k++){
-                        but[i][k].setBackground(new Color(89,89,89));
+                        if(but[i][k].getBackground()!=Color.red) but[i][k].setBackground(new Color(89,89,89));
                     }
                     for(int l=0;l<9;l++){
-                        but[l][j].setBackground(new Color(89,89,89));
+                        if(but[l][j].getBackground()!=Color.red) but[l][j].setBackground(new Color(89,89,89));
                     }
                     xind=i;
                     yind=j;
+                    //String s1=String.valueOf(but[i][j]);
+                    //System.out.println(String.valueOf(but[i][j].getText()));
+                    if(!but[i][j].getText().equals("")){
+                        for(int k=0;k<9;k++){
+                            for(int l=0;l<9;l++){
+                                String s1=String.valueOf(but[i][j].getText());
+                                String s2=String.valueOf(but[k][l].getText());
+                                if(s1.equals(s2)){
+                                     but[k][l].setBackground(new Color(89,89,89));
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
     }
     public void keyPressed(KeyEvent k){
         String comp=but[xind][yind].getText();
-        if(comp.equals(vis)){
+        if(comp.equals(vis)||but[xind][yind].getBackground()==Color.red){
             val=String.valueOf(k.getKeyChar());
+            //System.out.println(val);
             but[xind][yind].setFont(font);
             if(!val.equals(String.valueOf(ans[xind][yind]))){
                 but[xind][yind].setText(val);
@@ -178,11 +209,11 @@ int[][] b5 = {
             else{
                 but[xind][yind].setText(val);
                 but[xind][yind].setForeground(Color.black);
+                but[xind][yind].setBackground(new Color(89,89,89));
             }
         }
         if(mistakes==3){
             JOptionPane.showMessageDialog(this,"Game Over");
-            //clip.start();
             this.setVisible(false);
         }
     }
@@ -192,20 +223,26 @@ int[][] b5 = {
     public void keyTyped(KeyEvent k){
         //val=k.getKeyChar();
     }
+    // public void paint(Graphics g){
+    //     //Graphics2D g=(Graphics2D)g1;
+    //     g.drawLine(168,0,170,500);
+    // }
 }
     JPanel panel;
     JButton but[][];
-    JLabel head,mis;
+    JLabel head,mis,time,minl;
     Font font;
     MyPanel p;
+    int sec=0,min=0;
     sudoko(){
         this.setSize(1550,840);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setTitle("SUDOKU");
         this.setLayout(null);
+        this.setBackground(Color.black);
         
         p=new MyPanel();
-        p.setBounds(500,175,500,500);
+        p.setBounds(500,175,516,500);
         font = new Font("Arial",Font.BOLD,35);
         head=new JLabel("SUDOKU");
         head.setFont(font);
@@ -214,13 +251,47 @@ int[][] b5 = {
         mis=new JLabel("Mistakes: "+mistakes+"/3");
         mis.setFont(font);
         mis.setBounds(875,150,150,25);
+        time=new JLabel();
+        time.setBounds(600,150,100,25);
+        time.setFont(font);
+        this.add(time);
+        minl=new JLabel();
+        minl.setBounds(520,150,100,25);
+        minl.setFont(font);
+        this.add(minl);
+        Timer t=new Timer(1000,new ActionListener() {
+            public void actionPerformed(ActionEvent e){
+                updateTime();
+            }
+        });
+        t.start();
         this.add(head);
         this.add(mis);
         this.add(p,BorderLayout.CENTER);
         this.setVisible(true);
     }
-    
-    
+    void updateTime(){
+        if(sec<10){
+            time.setText("0"+String.valueOf(++sec));
+        }
+        else if(sec<59){
+            time.setText(String.valueOf(++sec));
+        }
+        else{
+            sec=0;
+            time.setText("0"+String.valueOf(++sec));
+            min++;
+        }
+        if(min<10){
+            minl.setText("Time "+"0"+String.valueOf(min)+":");
+        }
+        else if(min==0){
+            minl.setText("Time "+"00:");
+        }
+        else{
+            minl.setText(String.valueOf(min)+":");
+        }
+    }
     public static void main(String []args){
         new sudoko();
     }
